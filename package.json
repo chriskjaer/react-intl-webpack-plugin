@@ -8,9 +8,14 @@
     "url": "https://github.com/jdcrensh/react-intl-webpack-plugin.git"
   },
   "dependencies": {
-    "lodash.sortby": "^4.7.0"
+    "lodash.assign": "^4.2.0",
+    "lodash.merge": "^4.6.0",
+    "lodash.sortby": "^4.7.0",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {
-    "babel-plugin-lodash": "^3.2.11"
+    "babel-plugin-lodash": "^3.2.11",
+    "eslint": "^3.19.0",
+    "eslint-config-prettier": "^1.7.0"
   }
 }

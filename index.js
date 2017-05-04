@@ -1,60 +1,64 @@
 var sortBy = require('lodash.sortby')
+var merge = require('lodash.merge')
+var createOutputWriter = require('./lib/createOutputWriter')
+var createQueuedWriter = require('./lib/createQueuedWriter')
 
 function collapseWhitespace(str) {
   return str.replace(/[\s\n]+/g, ' ')
 }
 
 function ReactIntlPlugin(options) {
-  this.options = options || {}
-  if (this.options.sortKeys == null) {
-    this.options.sortKeys = true
-  }
-  if (this.options.collapseWhitespace == null) {
-    this.options.collapseWhitespace = false
-  }
-  if (this.options.filename == null) {
-    this.options.filename = 'reactIntlMessages'
-  }
+  this.options = merge(
+    {},
+    {
+      path: '.',
+      prettyPrint: true,
+      sortKeys: true,
+      collapseWhitespace: false,
+      filename: 'reactIntlMessages.json',
+    },
+    options
+  )
+  this.writer = createQueuedWriter(createOutputWriter(this.options))
 }
 
-ReactIntlPlugin.prototype.apply = function(compiler) {
-  var messages = []
-  var options = this.options
+ReactIntlPlugin.prototype = {
+  constructor: ReactIntlPlugin,
 
-  compiler.plugin('compilation', function(compilation) {
-    compilation.plugin('normal-module-loader', function(context) {
-      context.metadataReactIntlPlugin = function(metadata) {
-        messages = messages.concat(metadata['react-intl'].messages)
-      }
-    })
-  })
+  apply: function(compiler) {
+    var messages = []
+    var options = this.options
+    var writer = this.writer
 
-  compiler.plugin('emit', function(compilation, callback) {
-    messages = options.sortKeys ? sortBy(messages, 'id') : messages
-    var jsonMessages = messages.reduce(function(result, m) {
-      if (m.defaultMessage) {
-        m.defaultMessage = m.defaultMessage.trim()
-        if (options.collapseWhitespace) {
-          m.defaultMessage = collapseWhitespace(m.defaultMessage)
+    compiler.plugin('compilation', function(compilation) {
+      compilation.plugin('normal-module-loader', function(context) {
+        context.metadataReactIntlPlugin = function(metadata) {
+          messages = messages.concat(metadata['react-intl'].messages)
         }
-        result[m.id] = m.defaultMessage
-      }
-      return result
-    }, {})
+      })
+    })
 
-    var jsonString = JSON.stringify(jsonMessages, undefined, 2)
+    compiler.plugin('emit', function(compilation, callback) {
+      messages = options.sortKeys ? sortBy(messages, 'id') : messages
+      var output = messages.reduce(function(result, m) {
+        if (m.defaultMessage) {
+          m.defaultMessage = m.defaultMessage.trim()
+          if (options.collapseWhitespace) {
+            m.defaultMessage = collapseWhitespace(m.defaultMessage)
+          }
+          result[m.id] = m.defaultMessage
+        }
+        return result
+      }, {})
 
-    compilation.assets[options.filename + '.json'] = {
-      source: function() {
-        return jsonString
-      },
-      size: function() {
-        return jsonString.length
-      },
-    }
-
-    callback()
-  })
+      writer(output, function(err) {
+        if (err) {
+          compilation.errors.push(err)
+        }
+        callback()
+      })
+    })
+  },
 }
 
 module.exports = ReactIntlPlugin
