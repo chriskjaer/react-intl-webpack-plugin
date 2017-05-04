@@ -1,7 +1,6 @@
 {
-  "name": "@jdcrensh/react-intl-webpack-plugin",
-  "version": "0.1.5",
-  "author": "Jon Crenshaw <jdcrensh@gmail.com>",
+  "name": "@chriskjaer/react-intl-webpack-plugin",
+  "version": "0.0.1",
   "description": "ReactIntlPlugin for webpack",
   "license": "MIT",
   "repository": {
@@ -12,9 +11,6 @@
     "lodash.sortby": "^4.7.0"
   },
   "devDependencies": {
-    "babel-plugin-lodash": "^3.2.11",
-    "eslint": "^3.16.1",
-    "eslint-config-airbnb-base": "^11.1.1",
-    "eslint-plugin-import": "^2.2.0"
+    "babel-plugin-lodash": "^3.2.11"
   }
 }
