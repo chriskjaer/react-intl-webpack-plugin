@@ -19,6 +19,7 @@ function ReactIntlPlugin(options) {
 
 ReactIntlPlugin.prototype.apply = function(compiler) {
   var messages = []
+  var options = this.options
 
   compiler.plugin('compilation', function(compilation) {
     compilation.plugin('normal-module-loader', function(context) {
@@ -29,24 +30,21 @@ ReactIntlPlugin.prototype.apply = function(compiler) {
   })
 
   compiler.plugin('emit', function(compilation, callback) {
-    messages = this.options.sortKeys ? sortBy(messages, 'id') : messages
-    var jsonMessages = messages.reduce(
-      function(result, m) {
-        if (m.defaultMessage) {
-          m.defaultMessage = m.defaultMessage.trim()
-          if (this.options.collapseWhitespace) {
-            m.defaultMessage = collapseWhitespace(m.defaultMessage)
-          }
-          result[m.id] = m.defaultMessage
+    messages = options.sortKeys ? sortBy(messages, 'id') : messages
+    var jsonMessages = messages.reduce(function(result, m) {
+      if (m.defaultMessage) {
+        m.defaultMessage = m.defaultMessage.trim()
+        if (options.collapseWhitespace) {
+          m.defaultMessage = collapseWhitespace(m.defaultMessage)
         }
-        return result
-      }.bind(this),
-      {}
-    )
+        result[m.id] = m.defaultMessage
+      }
+      return result
+    }, {})
 
     var jsonString = JSON.stringify(jsonMessages, undefined, 2)
 
-    compilation.assets[this.options.filename + '.json'] = {
+    compilation.assets[options.filename + '.json'] = {
       source: function() {
         return jsonString
       },
