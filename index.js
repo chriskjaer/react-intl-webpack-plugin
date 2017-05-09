@@ -2,6 +2,7 @@ var sortBy = require('lodash.sortby')
 var merge = require('lodash.merge')
 var createOutputWriter = require('./lib/createOutputWriter')
 var createQueuedWriter = require('./lib/createQueuedWriter')
+var path = require('path')
 
 function collapseWhitespace(str) {
   return str.replace(/[\s\n]+/g, ' ')
@@ -39,16 +40,34 @@ ReactIntlPlugin.prototype = {
     })
 
     compiler.plugin('emit', function(compilation, callback) {
-      messages = options.sortKeys ? sortBy(messages, 'id') : messages
-      var output = messages.reduce(function(result, m) {
+      messages = messages.map(function(m) {
         if (m.defaultMessage) {
           m.defaultMessage = m.defaultMessage.trim()
           if (options.collapseWhitespace) {
             m.defaultMessage = collapseWhitespace(m.defaultMessage)
           }
-          result[m.id] = m.defaultMessage
+
+          if (options.prependFolderNameToID) {
+            if (m.id[0] === '.') {
+              var folderName = path.basename(path.dirname(m.file))
+              m.id = folderName + m.id
+            }
+          }
         }
-        return result
+        return [m.id, m.defaultMessage]
+      })
+
+      if (options.sortKeys) {
+        messages = sortBy(messages, function(m) {
+          return m[0]
+        })
+      }
+
+      var output = messages.reduce(function(acc, m) {
+        var id = m[0]
+        var message = m[1]
+        acc[id] = message
+        return acc
       }, {})
 
       writer(output, function(err) {

@@ -14,6 +14,7 @@ This fork adds a few options for generating the JSON output:
 * Custom filename
 * Custom output path
 * Pretty printing
+* Prepend folder name to id
 
 ## Workflow
 
@@ -79,7 +80,16 @@ module: {
 `filename` (string, default `reactIntlMessages.json`): the filename of the
 messages file
 
-`prettyPrint`: (boolean, defaul `true`): Pretty prints the json file
+`prettyPrint`: (boolean, default `true`): Pretty prints the json file
+
+`prependFolderNameToID`: (boolean, default `false`): finds the folder name of
+the file and prepends that to the ID. 
+e.g. an ID inside the component folder `Footer` with an id of: `.button` will be
+converted to `Footer.button`. The feature have been made opt-in with the use of
+`.`. This enables the feature to gradually added, and allows developers to opt
+out in case of a folder rename.
+
+Make sure `extractSourceLocation` is set to `true` when using this feature
 
 
 ## Notes
